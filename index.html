@@ -1,189 +1,667 @@
 <!DOCTYPE html>
 <html lang="ka">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>თემურიკოს ამინდის პროგნოზი</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <style>
-    .fishing-good { background-color: #10b981; }
-    .fishing-moderate { background-color: #f59e0b; }
-    .fishing-poor { background-color: #ef4444; }
-    .tab-active { background-color: #2dd4bf; color: white; }
-    .tab-inactive { background-color: #4b5563; color: white; }
-    .tab-inactive:hover { background-color: #5eead4; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .tab-transition { transition: all 0.3s ease; }
-    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ამინდის პროგნოზი სათევზაოდ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .widget-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .city-tabs {
+            display: flex;
+            background: rgba(102, 126, 234, 0.1);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            overflow-x: auto;
+        }
+
+        .city-tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #667eea;
+            font-size: 1rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .city-tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #5a67d8;
+        }
+
+        .city-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .city-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: white;
+        }
+
+        .city-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .city-content.active {
+            display: block;
+        }
+
+        .current-weather {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+            border-radius: 15px;
+        }
+
+        .current-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .weather-icon {
+            font-size: 4rem;
+        }
+
+        .weather-details h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .weather-details p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .current-temp {
+            font-size: 3rem;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .fishing-score {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+
+        .fishing-score.poor {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+        }
+
+        .fishing-score.fair {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+        }
+
+        .days-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .day-tab {
+            padding: 12px 20px;
+            background: #f8f9ff;
+            border: 2px solid transparent;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 120px;
+            text-align: center;
+            position: relative;
+        }
+
+        .day-fishing-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+        }
+
+        .day-fishing-indicator.fair {
+            background: #ff9800;
+        }
+
+        .day-fishing-indicator.poor {
+            background: #f44336;
+        }
+
+        .day-tab:hover {
+            background: #e8f0ff;
+            border-color: #667eea;
+        }
+
+        .day-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .day-content {
+            display: none;
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .day-content.active {
+            display: block;
+        }
+
+        .hourly-forecast {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .hour-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .hour-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .hour-time {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .hour-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .hour-temp {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .hour-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+            color: #667eea;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #f44336;
+            background: rgba(255, 235, 238, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .update-info {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .current-weather {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .current-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hourly-forecast {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .city-tabs {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-b from-blue-900 to-slate-800 min-h-screen flex items-center justify-center p-4 font-sans">
-  <div class="container mx-auto max-w-4xl">
-    <h1 class="text-3xl font-bold text-center mb-6 text-white">თემურიკოს ამინდის პროგნოზი</h1>
-    
-    <!-- Tab Navigation -->
-    <div class="flex justify-center mb-6">
-      <div class="flex space-x-2 bg-slate-700 rounded-lg p-1">
-        <button class="tab-button tab-active px-4 py-2 rounded-md font-medium tab-transition" data-location="თბილისი"><i class="fa-solid fa-location-dot mr-2"></i>თბილისი</button>
-        <button class="tab-button tab-inactive px-4 py-2 rounded-md font-medium tab-transition" data-location="სიონი"><i class="fa-solid fa-location-dot mr-2"></i>სიონი</button>
-        <button class="tab-button tab-inactive px-4 py-2 rounded-md font-medium tab-transition" data-location="წალკა"><i class="fa-solid fa-location-dot mr-2"></i>წალკა</button>
-        <button class="tab-button tab-inactive px-4 py-2 rounded-md font-medium tab-transition" data-location="ნადარბაზევი"><i class="fa-solid fa-location-dot mr-2"></i>ნადარბაზევი</button>
-        <button class="tab-button tab-inactive px-4 py-2 rounded-md font-medium tab-transition" data-location="ბაზალეთი"><i class="fa-solid fa-location-dot mr-2"></i>ბაზალეთი</button>
-      </div>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎣 ამინდის პროგნოზი სათევზაოდ</h1>
+            <p>ლაივ მონაცემები yr.no-დან | ავტომატური განახლება</p>
+        </div>
+
+        <div class="widget-container">
+            <div class="city-tabs" id="cityTabs">
+                <!-- City tabs will be inserted here -->
+            </div>
+
+            <div id="cityContents">
+                <!-- City contents will be inserted here -->
+            </div>
+        </div>
+
+        <div class="update-info" id="updateInfo">
+            ბოლო განახლება: --
+        </div>
     </div>
 
-    <!-- Weather Container -->
-    <div id="weather-container" class="bg-white rounded-lg shadow-xl p-6"></div>
-  </div>
+    <script>
+        const locations = [
+            { id: 'tbilisi', name: 'თბილისი', lat: 41.7151, lon: 44.8271 },
+            { id: 'sioni', name: 'სიონი', lat: 41.9000, lon: 44.7167 },
+            { id: 'tsalka', name: 'წალკა', lat: 41.5833, lon: 44.0833 },
+            { id: 'nadarbazevi', name: 'ნადარბაზევი', lat: 41.9167, lon: 44.6167 },
+            { id: 'bazaleti', name: 'ბაზალეთი', lat: 42.0833, lon: 44.7500 }
+        ];
 
-  <script>
-    const locations = [
-      { name: "თბილისი", lat: 41.7151, lon: 44.8271 },
-      { name: "სიონი", lat: 41.9892, lon: 44.5744 },
-      { name: "წალკა", lat: 41.5946, lon: 44.0895 },
-      { name: "ნადარბაზევი", lat: 41.9833, lon: 44.3333 },
-      { name: "ბაზალეთი", lat: 41.9961, lon: 44.6789 }
-    ];
+        const weatherIcons = {
+            'clearsky': '☀️',
+            'fair': '🌤️',
+            'partlycloudy': '⛅',
+            'cloudy': '☁️',
+            'rainshowers': '🌦️',
+            'rain': '🌧️',
+            'thunderstorm': '⛈️',
+            'snow': '❄️',
+            'fog': '🌫️',
+            'default': '🌤️'
+        };
 
-    // Cache for storing API responses
-    const cache = {};
-    const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+        const georgianDays = ['კვირა', 'ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი'];
+        const georgianMonths = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
 
-    async function fetchWeatherData(lat, lon) {
-      const cacheKey = `${lat}_${lon}`;
-      const now = Date.now();
+        let weatherData = {};
+        let currentCity = 'tbilisi';
+        let currentDay = 0;
 
-      // Check cache first
-      if (cache[cacheKey] && (now - cache[cacheKey].timestamp) < CACHE_DURATION) {
-        return cache[cacheKey].data;
-      }
+        function getWeatherIcon(symbol) {
+            if (!symbol) return weatherIcons.default;
+            const symbolCode = symbol.split('_')[0];
+            return weatherIcons[symbolCode] || weatherIcons.default;
+        }
 
-      try {
-        const response = await axios.get(`https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${lat}&lon=${lon}`, {
-          headers: {
-            'User-Agent': 'FishingWeatherWidget/1.0 (contact: your-email@example.com)'
-          }
+        function getFishingScore(temp, windSpeed, precipitation, humidity) {
+            let score = 0;
+            
+            // Temperature score (15-25°C is ideal for fishing)
+            if (temp >= 15 && temp <= 25) score += 40;
+            else if (temp >= 10 && temp <= 30) score += 25;
+            else if (temp >= 5 && temp <= 35) score += 10;
+            
+            // Wind score (light breeze 2-8 m/s is good)
+            if (windSpeed >= 2 && windSpeed <= 8) score += 30;
+            else if (windSpeed >= 1 && windSpeed <= 12) score += 20;
+            else if (windSpeed <= 15) score += 10;
+            
+            // Precipitation score (no rain or light drizzle)
+            if (precipitation === 0) score += 20;
+            else if (precipitation <= 1) score += 15;
+            else if (precipitation <= 3) score += 5;
+            
+            // Humidity bonus (moderate humidity is good)
+            if (humidity >= 60 && humidity <= 80) score += 10;
+            
+            if (score >= 80) return { text: 'მშვენიერი', class: '' };
+            if (score >= 60) return { text: 'კარგი', class: 'fair' };
+            return { text: 'ცუდი', class: 'poor' };
+        }
+
+        async function fetchWeatherData(lat, lon) {
+            try {
+                const response = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`, {
+                    headers: {
+                        'User-Agent': 'FishingWeatherWidget/1.0'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                throw error;
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const dayName = georgianDays[date.getDay()];
+            const day = date.getDate();
+            const month = georgianMonths[date.getMonth()];
+            return `${dayName}, ${day} ${month}`;
+        }
+
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function groupByDays(timeseries) {
+            const days = {};
+            
+            timeseries.forEach(entry => {
+                const date = new Date(entry.time);
+                const dayKey = date.toDateString();
+                
+                if (!days[dayKey]) {
+                    days[dayKey] = [];
+                }
+                days[dayKey].push(entry);
+            });
+            
+            return Object.values(days).slice(0, 7); // Return first 7 days
+        }
+
+        function createCityTabs() {
+            const cityTabs = document.getElementById('cityTabs');
+            cityTabs.innerHTML = locations.map((location, index) => 
+                `<button class="city-tab ${index === 0 ? 'active' : ''}" onclick="switchCity('${location.id}')">${location.name}</button>`
+            ).join('');
+        }
+
+        function createCityContent(location, data) {
+            const current = data.properties.timeseries[0];
+            const currentData = current.data.instant.details;
+            const nextHour = current.data.next_1_hours;
+            
+            const temp = Math.round(currentData.air_temperature);
+            const windSpeed = Math.round(currentData.wind_speed);
+            const humidity = Math.round(currentData.relative_humidity);
+            const precipitation = nextHour?.details?.precipitation_amount || 0;
+            const symbol = nextHour?.summary?.symbol_code || 'fair_day';
+            
+            const fishingScore = getFishingScore(temp, windSpeed, precipitation, humidity);
+            const dayGroups = groupByDays(data.properties.timeseries);
+            
+            return `
+                <div class="city-content ${location.id === currentCity ? 'active' : ''}" id="content-${location.id}">
+                    <div class="current-weather">
+                        <div class="current-info">
+                            <div class="weather-icon">${getWeatherIcon(symbol)}</div>
+                            <div class="weather-details">
+                                <h2>${location.name}</h2>
+                                <p>ქარი: ${windSpeed} მ/წმ</p>
+                                <p>ტენიანობა: ${humidity}%</p>
+                                <p>ნალექი: ${precipitation} მმ</p>
+                                <div class="fishing-score ${fishingScore.class}">
+                                    🎣 სათევზაო პირობები: ${fishingScore.text}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="current-temp">${temp}°C</div>
+                    </div>
+                    
+                    <div class="days-tabs">
+                        ${dayGroups.map((dayData, index) => {
+                            const date = new Date(dayData[0].time);
+                            const dayName = georgianDays[date.getDay()];
+                            const dayMonth = `${date.getDate()}/${date.getMonth() + 1}`;
+                            
+                            // Calculate day's fishing score for tab indicator
+                            const dayAvgForTab = dayData.slice(0, 8).reduce((acc, hourData) => {
+                                const details = hourData.data.instant.details;
+                                const next = hourData.data.next_1_hours;
+                                acc.temp += details.air_temperature;
+                                acc.wind += details.wind_speed;
+                                acc.humidity += details.relative_humidity;
+                                acc.precip += next?.details?.precipitation_amount || 0;
+                                return acc;
+                            }, { temp: 0, wind: 0, humidity: 0, precip: 0 });
+                            
+                            const tabFishingScore = getFishingScore(
+                                dayAvgForTab.temp / 8, 
+                                dayAvgForTab.wind / 8, 
+                                dayAvgForTab.precip / 8, 
+                                dayAvgForTab.humidity / 8
+                            );
+                            
+                            return `<button class="day-tab ${index === 0 ? 'active' : ''}" onclick="switchDay('${location.id}', ${index})">
+                                <div class="day-fishing-indicator ${tabFishingScore.class}"></div>
+                                ${dayName}<br>${dayMonth}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                    
+                    <div id="dayContents-${location.id}">
+                        ${dayGroups.map((dayData, dayIndex) => {
+                            // Calculate average conditions for the day for fishing score
+                            const dayAvg = dayData.slice(0, 8).reduce((acc, hourData) => {
+                                const details = hourData.data.instant.details;
+                                const next = hourData.data.next_1_hours;
+                                acc.temp += details.air_temperature;
+                                acc.wind += details.wind_speed;
+                                acc.humidity += details.relative_humidity;
+                                acc.precip += next?.details?.precipitation_amount || 0;
+                                return acc;
+                            }, { temp: 0, wind: 0, humidity: 0, precip: 0 });
+                            
+                            const avgTemp = dayAvg.temp / 8;
+                            const avgWind = dayAvg.wind / 8;
+                            const avgHumidity = dayAvg.humidity / 8;
+                            const avgPrecip = dayAvg.precip / 8;
+                            const dayFishingScore = getFishingScore(avgTemp, avgWind, avgPrecip, avgHumidity);
+                            
+                            return `
+                            <div class="day-content ${dayIndex === 0 ? 'active' : ''}" id="day-${location.id}-${dayIndex}">
+                                <div style="text-align: center; margin-bottom: 20px;">
+                                    <div class="fishing-score ${dayFishingScore.class}">
+                                        🎣 დღის სათევზაო პირობები: ${dayFishingScore.text}
+                                    </div>
+                                </div>
+                                <div class="hourly-forecast">
+                                    ${dayData.slice(0, 8).map(hourData => {
+                                        const hourDetails = hourData.data.instant.details;
+                                        const hourNext = hourData.data.next_1_hours;
+                                        const hourTemp = Math.round(hourDetails.air_temperature);
+                                        const hourWind = Math.round(hourDetails.wind_speed);
+                                        const hourHumidity = Math.round(hourDetails.relative_humidity);
+                                        const hourPrecip = hourNext?.details?.precipitation_amount || 0;
+                                        const hourSymbol = hourNext?.summary?.symbol_code || 'fair_day';
+                                        const hourFishingScore = getFishingScore(hourTemp, hourWind, hourPrecip, hourHumidity);
+                                        
+                                        return `
+                                            <div class="hour-card">
+                                                <div class="hour-time">${formatTime(hourData.time)}</div>
+                                                <div class="hour-icon">${getWeatherIcon(hourSymbol)}</div>
+                                                <div class="hour-temp">${hourTemp}°C</div>
+                                                <div class="hour-details">
+                                                    ქარი: ${hourWind} მ/წმ<br>
+                                                    ნალექი: ${hourPrecip} მმ<br>
+                                                    <span style="color: ${hourFishingScore.class === '' ? '#4CAF50' : hourFishingScore.class === 'fair' ? '#ff9800' : '#f44336'}; font-weight: bold;">
+                                                        🎣 ${hourFishingScore.text}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function switchCity(cityId) {
+            currentCity = cityId;
+            currentDay = 0;
+            
+            // Update city tabs
+            document.querySelectorAll('.city-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update city contents
+            document.querySelectorAll('.city-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`content-${cityId}`).classList.add('active');
+        }
+
+        function switchDay(cityId, dayIndex) {
+            // Update day tabs for specific city
+            document.querySelectorAll(`#content-${cityId} .day-tab`).forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update day contents for specific city
+            document.querySelectorAll(`#dayContents-${cityId} .day-content`).forEach(content => content.classList.remove('active'));
+            document.getElementById(`day-${cityId}-${dayIndex}`).classList.add('active');
+        }
+
+        async function loadAllWeatherData() {
+            const cityContents = document.getElementById('cityContents');
+            
+            try {
+                cityContents.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span>ნამდვილი მონაცემების ჩატვირთვა yr.no-დან...</span>
+                    </div>
+                `;
+
+                // Create city tabs
+                createCityTabs();
+
+                // Fetch weather data for all locations
+                const weatherPromises = locations.map(async location => {
+                    const data = await fetchWeatherData(location.lat, location.lon);
+                    weatherData[location.id] = data;
+                    return { location, data };
+                });
+
+                const results = await Promise.all(weatherPromises);
+                
+                // Create all city contents
+                cityContents.innerHTML = results.map(({ location, data }) => 
+                    createCityContent(location, data)
+                ).join('');
+
+                document.getElementById('updateInfo').textContent = 
+                    `ბოლო განახლება: ${new Date().toLocaleString('ka-GE')} | მონაცემები: Norwegian Meteorological Institute`;
+
+            } catch (error) {
+                console.error('Error loading weather data:', error);
+                cityContents.innerHTML = `
+                    <div class="error">
+                        შეცდომა ნამდვილი მონაცემების ჩატვირთვისას yr.no-დან. 
+                        <br>შეცდომა: ${error.message}
+                        <br>გთხოვთ სცადოთ მოგვიანებით.
+                    </div>
+                `;
+            }
+        }
+
+        // Initial load
+        loadAllWeatherData();
+
+        // Auto-refresh every 30 minutes
+        setInterval(loadAllWeatherData, 30 * 60 * 1000);
+
+        // Refresh when page becomes visible again
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                loadAllWeatherData();
+            }
         });
-        // Filter for daily forecasts (e.g., 12:00 UTC each day)
-        const dailyForecasts = response.data.properties.timeseries
-          .filter(entry => new Date(entry.time).getUTCHours() === 12)
-          .slice(0, 7); // Limit to 7 days
-        cache[cacheKey] = { data: dailyForecasts, timestamp: now };
-        return dailyForecasts;
-      } catch (error) {
-        console.error("შეცდომა ამინდის მონაცემების მიღებისას:", error);
-        return [];
-      }
-    }
-
-    function getFishingCondition(temp, wind, precip) {
-      if (temp >= 10 && temp <= 25 && wind >= 5 && wind <= 15 && precip < 2) {
-        return { 
-          status: "კარგი", 
-          class: "fishing-good", 
-          icon: "fa-fish", 
-          reason: "იდეალური ტემპერატურა, ზომიერი ქარი, მინიმალური ნალექი" 
-        };
-      } else if (
-        ((temp >= 5 && temp < 10) || (temp > 25 && temp <= 30)) ||
-        (wind > 15 && wind <= 25) ||
-        (precip >= 2 && precip <= 5)
-      ) {
-        return { 
-          status: "საშუალო", 
-          class: "fishing-moderate", 
-          icon: "fa-fish", 
-          reason: "ტემპერატურა ან ქარი ნაკლებად იდეალურია, შესაძლოა ზომიერი ნალექი" 
-        };
-      } else {
-        return { 
-          status: "ცუდი", 
-          class: "fishing-poor", 
-          icon: "fa-fish", 
-          reason: "ძალიან ცივი ან ცხელი, ძლიერი ქარი ან ნალექი" 
-        };
-      }
-    }
-
-    function getWeatherIcon(cloudCover, precip) {
-      if (precip > 2) return "fa-cloud-rain";
-      if (cloudCover > 70) return "fa-cloud";
-      if (cloudCover > 30) return "fa-cloud-sun";
-      return "fa-sun";
-    }
-
-    async function renderWeather(locationName) {
-      const container = document.getElementById("weather-container");
-      container.innerHTML = "";
-      const location = locations.find(loc => loc.name === locationName);
-      if (!location) return;
-
-      const forecast = await fetchWeatherData(location.lat, location.lon);
-      if (forecast.length === 0) {
-        container.innerHTML = `<p class="text-center text-red-500">მონაცემები მიუწვდომელია ${location.name}-სთვის</p>`;
-        return;
-      }
-
-      let html = `<div class="tab-content active">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4"><i class="fa-solid fa-map-marker-alt mr-2"></i>${location.name}</h2>
-        <div class="space-y-4">
-      `;
-
-      forecast.forEach(day => {
-        const date = new Date(day.time).toLocaleDateString("ka-GE", { weekday: "short", month: "short", day: "numeric" });
-        const temp = day.data.instant.details.air_temperature;
-        const wind = day.data.instant.details.wind_speed * 3.6; // Convert m/s to km/h
-        const precip = day.data.next_1_hours ? day.data.next_1_hours.details.precipitation_amount : 0;
-        const clouds = day.data.instant.details.cloud_area_fraction;
-        const fishing = getFishingCondition(temp, wind, precip);
-        const weatherIcon = getWeatherIcon(clouds, precip);
-
-        html += `
-          <div class="flex items-center justify-between p-4 rounded-lg ${fishing.class} text-white shadow-md card-hover tab-transition">
-            <div class="flex items-center space-x-4">
-              <i class="fa-solid ${weatherIcon} text-2xl"></i>
-              <div>
-                <p class="font-medium">${date}</p>
-                <p>ტემპერატურა: ${temp.toFixed(1)}°C</p>
-                <p>ქარი: ${wind.toFixed(1)} კმ/სთ</p>
-                <p>ნალექი: ${precip.toFixed(1)} მმ</p>
-                <p>ღრუბლიანობა: ${clouds.toFixed(0)}%</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <p class="font-bold"><i class="fa-solid ${fishing.icon} mr-2"></i>თევზაობა: ${fishing.status}</p>
-              <p class="text-sm">${fishing.reason}</p>
-            </div>
-          </div>
-        `;
-      });
-
-      html += `</div></div>`;
-      container.innerHTML = html;
-    }
-
-    // Tab switching logic
-    const tabButtons = document.querySelectorAll(".tab-button");
-    tabButtons.forEach(button => {
-      button.addEventListener("click", () => {
-        tabButtons.forEach(btn => {
-          btn.classList.remove("tab-active");
-          btn.classList.add("tab-inactive");
-        });
-        button.classList.remove("tab-inactive");
-        button.classList.add("tab-active");
-        renderWeather(button.dataset.location);
-      });
-    });
-
-    // Initial render
-    renderWeather("თბილისი");
-
-    // Auto-update every hour
-    setInterval(() => renderWeather(document.querySelector(".tab-active").dataset.location), 60 * 60 * 1000);
-  </script>
+    </script>
 </body>
 </html>
