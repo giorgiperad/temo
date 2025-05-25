@@ -495,7 +495,7 @@
                             <div class="weather-details">
                                 <h2>${location.name}</h2>
                                 <p>${current.weather[0].description}</p>
-                                <p class="feels-like">გრძნობა: ${feelsLike}°C</p>
+                                <p class="feels-like">ტემპერატურა: ${feelsLike}°C</p>
                                 <p>ქარი: ${Math.round(windSpeed * 3.6)} კმ/სთ</p>
                                 <p>ტენიანობა: ${humidity}%</p>
                                 <p>წნევა: ${pressure} hPa</p>
@@ -592,7 +592,7 @@
                                                 <div class="hour-time">${formatTime(item.dt)}</div>
                                                 <div class="hour-icon">${getWeatherIcon(itemIcon)}</div>
                                                 <div class="hour-temp">${itemTemp}°C</div>
-                                                <div class="feels-like">გრძნობა ${itemFeelsLike}°C</div>
+                                                <div class="feels-like">ტემპ ${itemFeelsLike}°C</div>
                                                 <div class="hour-details">
                                                     ქარი: ${itemWind} კმ/სთ<br>
                                                     ტენიანობა: ${itemHumidity}%<br>
