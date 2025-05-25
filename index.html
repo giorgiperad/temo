@@ -4,155 +4,157 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>თევზაობის ამინდის პროგნოზი</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
     <style>
-        /* Your existing styles are good and remain unchanged */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Helvetica Neue', sans-serif; }
+        body { background-color: #f0f5f9; color: #333; font-size: 14px; line-height: 1.5; }
+        .container { max-width: 100%; padding: 10px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 15px; padding: 10px; background-color: #05668d; color: white; border-radius: 10px 10px 0 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .location-select { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; background-color: #fff; font-size: 16px; }
+        .date-select { display: flex; overflow-x: auto; margin-bottom: 10px; padding-bottom: 5px; scrollbar-width: thin; }
+        .date-btn { min-width: 80px; padding: 8px; margin-right: 5px; border: none; background-color: #e0e0e0; border-radius: 5px; flex-shrink: 0; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .date-btn.active { background-color: #05668d; color: white; }
+        .forecast-container { background-color: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; overflow: hidden; }
+        .current-conditions { padding: 15px; text-align: center; background-color: #f8f9fa; border-bottom: 1px solid #eee; }
+        .current-temp { font-size: 32px; font-weight: bold; }
+        .hourly-forecast { overflow-x: auto; white-space: nowrap; padding: 10px; scrollbar-width: thin; }
+        .hour-card { display: inline-block; padding: 10px; min-width: 100px; text-align: center; border-right: 1px solid #eee; }
+        .hour-card:last-child { border-right: none; }
+        .loading { text-align: center; padding: 20px; }
+        .weather-icon { font-size: 28px; color: #2196f3; margin-bottom: 5px; }
+        footer { text-align: center; padding: 10px; font-size: 12px; color: #666; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>თევზაობის ამინდის პროგნოზი</h1>
-            <p>თქვენი საუკეთესო თევზაობის დღეების დამგეგმავი</p>
-        </div>
-
-        <select id="location-select" class="location-select">
-            <option value="tbilisi">თბილისი</option>
-            <option value="sioni">სიონი</option>
-            <option value="tsalka">წალკა</option>
-            <option value="bazaleti">ბაზალეთი</option>
-            <option value="nadarbazevi">ნადარბაზევი</option>
-        </select>
-
-        <div id="date-select" class="date-select"></div>
-        <div id="forecast-container" class="forecast-container">
-            <div class="loading">მონაცემების ჩატვირთვა...</div>
-        </div>
-
-        <div class="info-section">
-            <h3>თევზაობის პირობების განმარტება</h3>
-            <p>თევზაობისთვის საუკეთესო პირობები მოიცავს: სტაბილურ წნევას (990-1020 hPa), ტემპერატურას 15-22°C, დაბალ ქარს (<15 კმ/სთ), და მცირე ან საშუალო ღრუბლიანობას.</p>
-        </div>
+<div class="container">
+    <div class="header">
+        <h1>თევზაობის ამინდის პროგნოზი</h1>
+        <p>თქვენი საუკეთესო თევზაობის დღეების დამგეგმავი</p>
     </div>
-
+    <select id="location-select" class="location-select">
+        <option value="tbilisi">თბილისი</option>
+        <option value="sioni">სიონი</option>
+        <option value="tsalka">წალკა</option>
+        <option value="bazaleti">ბაზალეთი</option>
+        <option value="nadarbazevi">ნადარბაზევი</option>
+    </select>
+    <div id="date-select" class="date-select"></div>
+    <div id="forecast-container" class="forecast-container">
+        <div class="loading">მონაცემების ჩატვირთვა...</div>
+    </div>
     <footer>
         <p>მონაცემები განახლებულია: <span id="update-time"></span></p>
     </footer>
-
-    <script>
-    const LOCATIONS = {
-        tbilisi: { name: "თბილისი", lat: 41.7151, lon: 44.8271 },
-        sioni: { name: "სიონი", lat: 41.6206, lon: 44.7944 },
-        tsalka: { name: "წალკა", lat: 41.5969, lon: 44.0931 },
-        bazaleti: { name: "ბაზალეთი", lat: 41.9031, lon: 44.6892 },
-        nadarbazevi: { name: "ნადარბაზევი", lat: 41.7756, lon: 44.7823 }
-    };
-
-    const API_KEY = 'b5f3b44e0ff36c689aa09e1c5f227d6d'; // <- Replace this with your actual key
-    let weatherData = [];
-    const startDate = new Date();
-
-    async function fetchWeatherData(location) {
-        const { lat, lon } = LOCATIONS[location];
-        const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("API Error: " + response.status);
-            const data = await response.json();
-            return data.list.map(item => {
-                const date = new Date(item.dt * 1000);
-                return {
-                    date,
-                    hour: date.getHours(),
-                    temperature: item.main.temp,
-                    windSpeed: item.wind.speed,
-                    windDirection: item.wind.deg,
-                    precipProbability: Math.round((item.pop || 0) * 100),
-                    precipAmount: item.rain?.['3h'] || 0,
-                    humidity: item.main.humidity,
-                    cloudCover: item.clouds.all,
-                    pressure: item.main.pressure,
-                    uvIndex: '-', // Removed because unavailable
-                    fishingQuality: 'fair', // placeholder
-                    isMajorPeriod: false,
-                    isMinorPeriod: false
-                }
-            });
-        } catch (e) {
-            console.error(e);
-            document.getElementById("forecast-container").innerHTML = '<div class="loading">ამინდის მონაცემების ჩატვირთვა ვერ მოხერხდა</div>';
-            return [];
-        }
-    }
-
-    function formatDate(date) {
-        return date.toLocaleDateString('ka-GE', { weekday: 'long', day: 'numeric', month: 'long' });
-    }
-
-    function formatTime(date) {
-        return date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit', hour12: false });
-    }
-
-    function renderDayForecast(dayIndex) {
-        const container = document.getElementById('forecast-container');
-        const selectedDate = new Date(startDate);
-        selectedDate.setDate(startDate.getDate() + dayIndex);
-        const data = weatherData.filter(item => {
-            const d = new Date(item.date);
-            return d.getDate() === selectedDate.getDate();
-        });
-        if (!data.length) {
-            container.innerHTML = '<div class="loading">ამინდის მონაცემები არ მოიძებნა</div>';
-            return;
-        }
-        let html = `<div class="current-conditions">
-            <h2>${formatDate(selectedDate)}</h2>
-            <div class="current-temp">${data[0].temperature}°C</div>
-        </div><div class="hourly-forecast">`;
-        data.forEach(item => {
-            html += `<div class="hour-card">
-                <div>${formatTime(new Date(item.date))}</div>
-                <div>${item.temperature}°C</div>
-                <div>${item.windSpeed} კმ/სთ</div>
-                <div>${item.precipProbability}% ნალექი</div>
-            </div>`;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-    }
-
-    function generateDayButtons() {
-        const container = document.getElementById('date-select');
-        container.innerHTML = '';
-        for (let i = 0; i < 5; i++) {
-            const date = new Date(startDate);
-            date.setDate(startDate.getDate() + i);
-            const btn = document.createElement('button');
-            btn.className = 'date-btn' + (i === 0 ? ' active' : '');
-            btn.setAttribute('data-day', i);
-            btn.innerHTML = `${date.toLocaleDateString('ka-GE', { weekday: 'short' })}<br>${date.getDate()}`;
-            btn.onclick = () => {
-                document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                renderDayForecast(i);
+</div>
+<script>
+const LOCATIONS = {
+    tbilisi: { name: "თბილისი", lat: 41.7151, lon: 44.8271 },
+    sioni: { name: "სიონი", lat: 41.6206, lon: 44.7944 },
+    tsalka: { name: "წალკა", lat: 41.5969, lon: 44.0931 },
+    bazaleti: { name: "ბაზალეთი", lat: 41.9031, lon: 44.6892 },
+    nadarbazevi: { name: "ნადარბაზევი", lat: 41.7756, lon: 44.7823 }
+};
+const API_KEY = 'b5f3b44e0ff36c689aa09e1c5f227d6d';
+let weatherData = [];
+const startDate = new Date();
+async function fetchWeatherData(location) {
+    const { lat, lon } = LOCATIONS[location];
+    const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("API Error: " + response.status);
+        const data = await response.json();
+        return data.list.map(item => {
+            const date = new Date(item.dt * 1000);
+            return {
+                date,
+                hour: date.getHours(),
+                temperature: item.main.temp,
+                windSpeed: item.wind.speed,
+                windDirection: item.wind.deg,
+                precipProbability: Math.round((item.pop || 0) * 100),
+                precipAmount: item.rain?.['3h'] || 0,
+                humidity: item.main.humidity,
+                cloudCover: item.clouds.all,
+                pressure: item.main.pressure,
+                icon: item.weather[0].icon,
+                description: item.weather[0].description
             }
-            container.appendChild(btn);
-        }
+        });
+    } catch (e) {
+        console.error(e);
+        document.getElementById("forecast-container").innerHTML = '<div class="loading">ამინდის მონაცემების ჩატვირთვა ვერ მოხერხდა</div>';
+        return [];
     }
-
-    async function loadLocationData() {
-        const locationId = document.getElementById("location-select").value;
-        document.getElementById("forecast-container").innerHTML = '<div class="loading">მონაცემების ჩატვირთვა...</div>';
-        weatherData = await fetchWeatherData(locationId);
-        generateDayButtons();
-        renderDayForecast(0);
-        document.getElementById('update-time').textContent = new Date().toLocaleString('ka-GE');
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("location-select").addEventListener("change", loadLocationData);
-        loadLocationData();
-        setInterval(() => loadLocationData(), 1800000);
+}
+function getWeatherIcon(icon) {
+    return `<img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="icon" width="50" height="50">`;
+}
+function formatDate(date) {
+    return date.toLocaleDateString('ka-GE', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+function formatTime(date) {
+    return date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+function renderDayForecast(dayIndex) {
+    const container = document.getElementById('forecast-container');
+    const selectedDate = new Date(startDate);
+    selectedDate.setDate(startDate.getDate() + dayIndex);
+    const data = weatherData.filter(item => {
+        const d = new Date(item.date);
+        return d.getDate() === selectedDate.getDate();
     });
-    </script>
+    if (!data.length) {
+        container.innerHTML = '<div class="loading">ამინდის მონაცემები არ მოიძებნა</div>';
+        return;
+    }
+    let html = `<div class="current-conditions">
+        <h2>${formatDate(selectedDate)}</h2>
+        <div class="current-temp">${data[0].temperature}°C</div>
+    </div><div class="hourly-forecast">`;
+    data.forEach(item => {
+        html += `<div class="hour-card">
+            <div>${formatTime(new Date(item.date))}</div>
+            <div class="weather-icon">${getWeatherIcon(item.icon)}</div>
+            <div>${item.temperature}°C</div>
+            <div>${item.windSpeed} კმ/სთ</div>
+            <div>${item.precipProbability}% ნალექი</div>
+        </div>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+}
+function generateDayButtons() {
+    const container = document.getElementById('date-select');
+    container.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        const btn = document.createElement('button');
+        btn.className = 'date-btn' + (i === 0 ? ' active' : '');
+        btn.setAttribute('data-day', i);
+        btn.innerHTML = `${date.toLocaleDateString('ka-GE', { weekday: 'short' })}<br>${date.getDate()}`;
+        btn.onclick = () => {
+            document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderDayForecast(i);
+        }
+        container.appendChild(btn);
+    }
+}
+async function loadLocationData() {
+    const locationId = document.getElementById("location-select").value;
+    document.getElementById("forecast-container").innerHTML = '<div class="loading">მონაცემების ჩატვირთვა...</div>';
+    weatherData = await fetchWeatherData(locationId);
+    generateDayButtons();
+    renderDayForecast(0);
+    document.getElementById('update-time').textContent = new Date().toLocaleString('ka-GE');
+}
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("location-select").addEventListener("change", loadLocationData);
+    loadLocationData();
+    setInterval(() => loadLocationData(), 1800000);
+});
+</script>
 </body>
 </html>
