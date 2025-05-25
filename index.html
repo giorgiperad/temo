@@ -216,7 +216,7 @@
 
         .hourly-forecast {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 15px;
         }
 
@@ -295,6 +295,12 @@
             opacity: 0.8;
         }
 
+        .feels-like {
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -325,7 +331,6 @@
     <div class="container">
         <div class="header">
             <h1>🎣 თემოს ამინდის პროგნოზი </h1>
-            
         </div>
 
         <div class="widget-container">
@@ -344,6 +349,8 @@
     </div>
 
     <script>
+        const API_KEY = 'b5f3b44e0ff36c689aa09e1c5f227d6d';
+        
         const locations = [
             { id: 'tbilisi', name: 'თბილისი', lat: 41.7151, lon: 44.8271 },
             { id: 'sioni', name: 'სიონი', lat: 41.9000, lon: 44.7167 },
@@ -353,16 +360,15 @@
         ];
 
         const weatherIcons = {
-            'clearsky': '☀️',
-            'fair': '🌤️',
-            'partlycloudy': '⛅',
-            'cloudy': '☁️',
-            'rainshowers': '🌦️',
-            'rain': '🌧️',
-            'thunderstorm': '⛈️',
-            'snow': '❄️',
-            'fog': '🌫️',
-            'default': '🌤️'
+            '01d': '☀️', '01n': '🌙',
+            '02d': '🌤️', '02n': '☁️',
+            '03d': '☁️', '03n': '☁️',
+            '04d': '☁️', '04n': '☁️',
+            '09d': '🌧️', '09n': '🌧️',
+            '10d': '🌦️', '10n': '🌧️',
+            '11d': '⛈️', '11n': '⛈️',
+            '13d': '❄️', '13n': '❄️',
+            '50d': '🌫️', '50n': '🌫️'
         };
 
         const georgianDays = ['კვირა', 'ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი'];
@@ -372,85 +378,93 @@
         let currentCity = 'tbilisi';
         let currentDay = 0;
 
-        function getWeatherIcon(symbol) {
-            if (!symbol) return weatherIcons.default;
-            const symbolCode = symbol.split('_')[0];
-            return weatherIcons[symbolCode] || weatherIcons.default;
+        function getWeatherIcon(iconCode) {
+            return weatherIcons[iconCode] || '🌤️';
         }
 
-        function getFishingScore(temp, windSpeed, precipitation, humidity) {
+        function getFishingScore(temp, windSpeed, humidity, pressure, clouds, rain = 0) {
             let score = 0;
             
-            // Temperature score (15-25°C is ideal for fishing)
-            if (temp >= 15 && temp <= 25) score += 40;
-            else if (temp >= 10 && temp <= 30) score += 25;
-            else if (temp >= 5 && temp <= 35) score += 10;
+            // Temperature score (optimal 15-25°C)
+            if (temp >= 15 && temp <= 25) score += 35;
+            else if (temp >= 12 && temp <= 28) score += 25;
+            else if (temp >= 8 && temp <= 32) score += 15;
+            else if (temp >= 5 && temp <= 35) score += 5;
             
-            // Wind score (light breeze 2-8 m/s is good)
-            if (windSpeed >= 2 && windSpeed <= 8) score += 30;
-            else if (windSpeed >= 1 && windSpeed <= 12) score += 20;
-            else if (windSpeed <= 15) score += 10;
+            // Wind score (light breeze 2-10 km/h is ideal)
+            const windKmh = windSpeed * 3.6;
+            if (windKmh >= 2 && windKmh <= 10) score += 25;
+            else if (windKmh >= 1 && windKmh <= 15) score += 20;
+            else if (windKmh <= 20) score += 10;
+            else if (windKmh <= 30) score += 5;
             
-            // Precipitation score (no rain or light drizzle)
-            if (precipitation === 0) score += 20;
-            else if (precipitation <= 1) score += 15;
-            else if (precipitation <= 3) score += 5;
+            // Humidity score (60-80% is good)
+            if (humidity >= 60 && humidity <= 80) score += 15;
+            else if (humidity >= 50 && humidity <= 90) score += 10;
+            else if (humidity >= 40 && humidity <= 95) score += 5;
             
-            // Humidity bonus (moderate humidity is good)
-            if (humidity >= 60 && humidity <= 80) score += 10;
+            // Pressure score (stable pressure is good)
+            if (pressure >= 1010 && pressure <= 1025) score += 15;
+            else if (pressure >= 1005 && pressure <= 1030) score += 10;
+            else if (pressure >= 1000 && pressure <= 1035) score += 5;
             
-            if (score >= 80) return { text: 'მშვენიერი', class: '' };
-            if (score >= 60) return { text: 'კარგი', class: 'fair' };
+            // Cloud cover (some clouds can be good)
+            if (clouds >= 20 && clouds <= 60) score += 10;
+            else if (clouds <= 80) score += 5;
+            
+            // Rain penalty
+            if (rain === 0) score += 10;
+            else if (rain <= 2) score += 5;
+            else if (rain > 10) score -= 10;
+            
+            if (score >= 85) return { text: 'მშვენიერი', class: '' };
+            if (score >= 65) return { text: 'კარგი', class: 'fair' };
             return { text: 'ცუდი', class: 'poor' };
         }
 
-        async function fetchWeatherData(lat, lon) {
-            try {
-                const response = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`, {
-                    headers: {
-                        'User-Agent': 'FishingWeatherWidget/1.0'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('Error fetching weather data:', error);
-                throw error;
-            }
+        async function fetchCurrentWeather(lat, lon) {
+            const response = await fetch(
+                `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ka`
+            );
+            if (!response.ok) throw new Error(`Current weather API error: ${response.status}`);
+            return await response.json();
         }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
+        async function fetch5DayForecast(lat, lon) {
+            const response = await fetch(
+                `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ka`
+            );
+            if (!response.ok) throw new Error(`Forecast API error: ${response.status}`);
+            return await response.json();
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp * 1000);
             const dayName = georgianDays[date.getDay()];
             const day = date.getDate();
             const month = georgianMonths[date.getMonth()];
             return `${dayName}, ${day} ${month}`;
         }
 
-        function formatTime(dateString) {
-            const date = new Date(dateString);
+        function formatTime(timestamp) {
+            const date = new Date(timestamp * 1000);
             return date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' });
         }
 
-        function groupByDays(timeseries) {
+        function groupForecastByDays(forecastList) {
             const days = {};
             
-            timeseries.forEach(entry => {
-                const date = new Date(entry.time);
+            forecastList.forEach(item => {
+                const date = new Date(item.dt * 1000);
                 const dayKey = date.toDateString();
                 
                 if (!days[dayKey]) {
                     days[dayKey] = [];
                 }
-                days[dayKey].push(entry);
+                days[dayKey].push(item);
             });
             
-            return Object.values(days).slice(0, 7); // Return first 7 days
+            return Object.values(days).slice(0, 5); // 5 days forecast
         }
 
         function createCityTabs() {
@@ -460,30 +474,33 @@
             ).join('');
         }
 
-        function createCityContent(location, data) {
-            const current = data.properties.timeseries[0];
-            const currentData = current.data.instant.details;
-            const nextHour = current.data.next_1_hours;
+        function createCityContent(location, currentWeather, forecast) {
+            const current = currentWeather;
+            const temp = Math.round(current.main.temp);
+            const feelsLike = Math.round(current.main.feels_like);
+            const windSpeed = current.wind.speed;
+            const humidity = current.main.humidity;
+            const pressure = current.main.pressure;
+            const clouds = current.clouds.all;
+            const rain = current.rain ? current.rain['1h'] || 0 : 0;
             
-            const temp = Math.round(currentData.air_temperature);
-            const windSpeed = Math.round(currentData.wind_speed);
-            const humidity = Math.round(currentData.relative_humidity);
-            const precipitation = nextHour?.details?.precipitation_amount || 0;
-            const symbol = nextHour?.summary?.symbol_code || 'fair_day';
-            
-            const fishingScore = getFishingScore(temp, windSpeed, precipitation, humidity);
-            const dayGroups = groupByDays(data.properties.timeseries);
+            const fishingScore = getFishingScore(temp, windSpeed, humidity, pressure, clouds, rain);
+            const dayGroups = groupForecastByDays(forecast.list);
             
             return `
                 <div class="city-content ${location.id === currentCity ? 'active' : ''}" id="content-${location.id}">
                     <div class="current-weather">
                         <div class="current-info">
-                            <div class="weather-icon">${getWeatherIcon(symbol)}</div>
+                            <div class="weather-icon">${getWeatherIcon(current.weather[0].icon)}</div>
                             <div class="weather-details">
                                 <h2>${location.name}</h2>
-                                <p>ქარი: ${windSpeed} მ/წმ</p>
+                                <p>${current.weather[0].description}</p>
+                                <p class="feels-like">გრძნობა: ${feelsLike}°C</p>
+                                <p>ქარი: ${Math.round(windSpeed * 3.6)} კმ/სთ</p>
                                 <p>ტენიანობა: ${humidity}%</p>
-                                <p>ნალექი: ${precipitation} მმ</p>
+                                <p>წნევა: ${pressure} hPa</p>
+                                <p>ღრუბლიანობა: ${clouds}%</p>
+                                ${rain > 0 ? `<p>წვიმა: ${rain} მმ/სთ</p>` : ''}
                                 <div class="fishing-score ${fishingScore.class}">
                                     🎣 სათევზაო პირობები: ${fishingScore.text}
                                 </div>
@@ -494,30 +511,27 @@
                     
                     <div class="days-tabs">
                         ${dayGroups.map((dayData, index) => {
-                            const date = new Date(dayData[0].time);
+                            const date = new Date(dayData[0].dt * 1000);
                             const dayName = georgianDays[date.getDay()];
                             const dayMonth = `${date.getDate()}/${date.getMonth() + 1}`;
                             
-                            // Calculate day's fishing score for tab indicator
-                            const dayAvgForTab = dayData.slice(0, 8).reduce((acc, hourData) => {
-                                const details = hourData.data.instant.details;
-                                const next = hourData.data.next_1_hours;
-                                acc.temp += details.air_temperature;
-                                acc.wind += details.wind_speed;
-                                acc.humidity += details.relative_humidity;
-                                acc.precip += next?.details?.precipitation_amount || 0;
-                                return acc;
-                            }, { temp: 0, wind: 0, humidity: 0, precip: 0 });
+                            // Calculate day's average fishing score
+                            const dayAvgScore = dayData.reduce((acc, item) => {
+                                const itemScore = getFishingScore(
+                                    item.main.temp,
+                                    item.wind.speed,
+                                    item.main.humidity,
+                                    item.main.pressure,
+                                    item.clouds.all,
+                                    item.rain ? item.rain['3h'] || 0 : 0
+                                );
+                                return acc + (itemScore.class === '' ? 85 : itemScore.class === 'fair' ? 65 : 45);
+                            }, 0) / dayData.length;
                             
-                            const tabFishingScore = getFishingScore(
-                                dayAvgForTab.temp / 8, 
-                                dayAvgForTab.wind / 8, 
-                                dayAvgForTab.precip / 8, 
-                                dayAvgForTab.humidity / 8
-                            );
+                            const tabIndicatorClass = dayAvgScore >= 85 ? '' : dayAvgScore >= 65 ? 'fair' : 'poor';
                             
                             return `<button class="day-tab ${index === 0 ? 'active' : ''}" onclick="switchDay('${location.id}', ${index})">
-                                <div class="day-fishing-indicator ${tabFishingScore.class}"></div>
+                                <div class="day-fishing-indicator ${tabIndicatorClass}"></div>
                                 ${dayName}<br>${dayMonth}
                             </button>`;
                         }).join('')}
@@ -525,22 +539,26 @@
                     
                     <div id="dayContents-${location.id}">
                         ${dayGroups.map((dayData, dayIndex) => {
-                            // Calculate average conditions for the day for fishing score
-                            const dayAvg = dayData.slice(0, 8).reduce((acc, hourData) => {
-                                const details = hourData.data.instant.details;
-                                const next = hourData.data.next_1_hours;
-                                acc.temp += details.air_temperature;
-                                acc.wind += details.wind_speed;
-                                acc.humidity += details.relative_humidity;
-                                acc.precip += next?.details?.precipitation_amount || 0;
+                            // Calculate day average for header
+                            const dayAvg = dayData.reduce((acc, item) => {
+                                acc.temp += item.main.temp;
+                                acc.wind += item.wind.speed;
+                                acc.humidity += item.main.humidity;
+                                acc.pressure += item.main.pressure;
+                                acc.clouds += item.clouds.all;
+                                acc.rain += item.rain ? item.rain['3h'] || 0 : 0;
                                 return acc;
-                            }, { temp: 0, wind: 0, humidity: 0, precip: 0 });
+                            }, { temp: 0, wind: 0, humidity: 0, pressure: 0, clouds: 0, rain: 0 });
                             
-                            const avgTemp = dayAvg.temp / 8;
-                            const avgWind = dayAvg.wind / 8;
-                            const avgHumidity = dayAvg.humidity / 8;
-                            const avgPrecip = dayAvg.precip / 8;
-                            const dayFishingScore = getFishingScore(avgTemp, avgWind, avgPrecip, avgHumidity);
+                            const count = dayData.length;
+                            const dayFishingScore = getFishingScore(
+                                dayAvg.temp / count,
+                                dayAvg.wind / count,
+                                dayAvg.humidity / count,
+                                dayAvg.pressure / count,
+                                dayAvg.clouds / count,
+                                dayAvg.rain / count
+                            );
                             
                             return `
                             <div class="day-content ${dayIndex === 0 ? 'active' : ''}" id="day-${location.id}-${dayIndex}">
@@ -550,26 +568,38 @@
                                     </div>
                                 </div>
                                 <div class="hourly-forecast">
-                                    ${dayData.slice(0, 8).map(hourData => {
-                                        const hourDetails = hourData.data.instant.details;
-                                        const hourNext = hourData.data.next_1_hours;
-                                        const hourTemp = Math.round(hourDetails.air_temperature);
-                                        const hourWind = Math.round(hourDetails.wind_speed);
-                                        const hourHumidity = Math.round(hourDetails.relative_humidity);
-                                        const hourPrecip = hourNext?.details?.precipitation_amount || 0;
-                                        const hourSymbol = hourNext?.summary?.symbol_code || 'fair_day';
-                                        const hourFishingScore = getFishingScore(hourTemp, hourWind, hourPrecip, hourHumidity);
+                                    ${dayData.map(item => {
+                                        const itemTemp = Math.round(item.main.temp);
+                                        const itemFeelsLike = Math.round(item.main.feels_like);
+                                        const itemWind = Math.round(item.wind.speed * 3.6);
+                                        const itemHumidity = item.main.humidity;
+                                        const itemPressure = item.main.pressure;
+                                        const itemClouds = item.clouds.all;
+                                        const itemRain = item.rain ? item.rain['3h'] || 0 : 0;
+                                        const itemIcon = item.weather[0].icon;
+                                        
+                                        const itemFishingScore = getFishingScore(
+                                            item.main.temp,
+                                            item.wind.speed,
+                                            itemHumidity,
+                                            itemPressure,
+                                            itemClouds,
+                                            itemRain
+                                        );
                                         
                                         return `
                                             <div class="hour-card">
-                                                <div class="hour-time">${formatTime(hourData.time)}</div>
-                                                <div class="hour-icon">${getWeatherIcon(hourSymbol)}</div>
-                                                <div class="hour-temp">${hourTemp}°C</div>
+                                                <div class="hour-time">${formatTime(item.dt)}</div>
+                                                <div class="hour-icon">${getWeatherIcon(itemIcon)}</div>
+                                                <div class="hour-temp">${itemTemp}°C</div>
+                                                <div class="feels-like">გრძნობა ${itemFeelsLike}°C</div>
                                                 <div class="hour-details">
-                                                    ქარი: ${hourWind} მ/წმ<br>
-                                                    ნალექი: ${hourPrecip} მმ<br>
-                                                    <span style="color: ${hourFishingScore.class === '' ? '#4CAF50' : hourFishingScore.class === 'fair' ? '#ff9800' : '#f44336'}; font-weight: bold;">
-                                                        🎣 ${hourFishingScore.text}
+                                                    ქარი: ${itemWind} კმ/სთ<br>
+                                                    ტენიანობა: ${itemHumidity}%<br>
+                                                    წნევა: ${itemPressure} hPa<br>
+                                                    ${itemRain > 0 ? `წვიმა: ${itemRain.toFixed(1)} მმ<br>` : ''}
+                                                    <span style="color: ${itemFishingScore.class === '' ? '#4CAF50' : itemFishingScore.class === 'fair' ? '#ff9800' : '#f44336'}; font-weight: bold;">
+                                                        🎣 ${itemFishingScore.text}
                                                     </span>
                                                 </div>
                                             </div>
@@ -614,7 +644,7 @@
                 cityContents.innerHTML = `
                     <div class="loading">
                         <div class="spinner"></div>
-                        <span>ნამდვილი მონაცემების ჩატვირთვა yr.no-დან...</span>
+                        <span>ზუსტი მონაცემების ჩატვირთვა OpenWeatherMap-დან...</span>
                     </div>
                 `;
 
@@ -623,28 +653,32 @@
 
                 // Fetch weather data for all locations
                 const weatherPromises = locations.map(async location => {
-                    const data = await fetchWeatherData(location.lat, location.lon);
-                    weatherData[location.id] = data;
-                    return { location, data };
+                    const [currentWeather, forecast] = await Promise.all([
+                        fetchCurrentWeather(location.lat, location.lon),
+                        fetch5DayForecast(location.lat, location.lon)
+                    ]);
+                    
+                    weatherData[location.id] = { current: currentWeather, forecast };
+                    return { location, currentWeather, forecast };
                 });
 
                 const results = await Promise.all(weatherPromises);
                 
                 // Create all city contents
-                cityContents.innerHTML = results.map(({ location, data }) => 
-                    createCityContent(location, data)
+                cityContents.innerHTML = results.map(({ location, currentWeather, forecast }) => 
+                    createCityContent(location, currentWeather, forecast)
                 ).join('');
 
                 document.getElementById('updateInfo').textContent = 
-                    `ბოლო განახლება: ${new Date().toLocaleString('ka-GE')} | მონაცემები: Norwegian Meteorological Institute`;
+                    `ბოლო განახლება: ${new Date().toLocaleString('ka-GE')} | მონაცემები: OpenWeatherMap (ზუსტი და დეტალური)`;
 
             } catch (error) {
                 console.error('Error loading weather data:', error);
                 cityContents.innerHTML = `
                     <div class="error">
-                        შეცდომა ნამდვილი მონაცემების ჩატვირთვისას yr.no-დან. 
+                        შეცდომა ზუსტი მონაცემების ჩატვირთვისას OpenWeatherMap-დან. 
                         <br>შეცდომა: ${error.message}
-                        <br>გთხოვთ სცადოთ მოგვიანებით.
+                        <br>გთხოვთ შეამოწმოთ ინტერნეტ კავშირი და სცადოთ მოგვიანებით.
                     </div>
                 `;
             }
@@ -653,8 +687,8 @@
         // Initial load
         loadAllWeatherData();
 
-        // Auto-refresh every 30 minutes
-        setInterval(loadAllWeatherData, 30 * 60 * 1000);
+        // Auto-refresh every 20 minutes (OpenWeatherMap updates frequently)
+        setInterval(loadAllWeatherData, 20 * 60 * 1000);
 
         // Refresh when page becomes visible again
         document.addEventListener('visibilitychange', () => {
