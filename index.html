@@ -48,30 +48,31 @@
       { name: "ბაზალეთი", lat: 41.9961, lon: 44.6789 }
     ];
 
+    // Cache for storing API responses
+    const cache = {};
+    const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+
     async function fetchWeatherData(lat, lon) {
-      // Placeholder for Yr.no API
+      const cacheKey = `${lat}_${lon}`;
+      const now = Date.now();
+
+      // Check cache first
+      if (cache[cacheKey] && (now - cache[cacheKey].timestamp) < CACHE_DURATION) {
+        return cache[cacheKey].data;
+      }
+
       try {
-        // Mock response for demonstration
-        const response = {
-          data: {
-            properties: {
-              timeseries: Array(7).fill().map((_, i) => ({
-                time: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString(),
-                data: {
-                  instant: {
-                    details: {
-                      air_temperature: 15 + Math.random() * 10,
-                      wind_speed: 5 + Math.random() * 15,
-                      precipitation_amount: Math.random() * 5,
-                      cloud_area_fraction: 20 + Math.random() * 60
-                    }
-                  }
-                }
-              }))
-            }
+        const response = await axios.get(`https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${lat}&lon=${lon}`, {
+          headers: {
+            'User-Agent': 'FishingWeatherWidget/1.0 (contact: your-email@example.com)'
           }
-        };
-        return response.data.properties.timeseries;
+        });
+        // Filter for daily forecasts (e.g., 12:00 UTC each day)
+        const dailyForecasts = response.data.properties.timeseries
+          .filter(entry => new Date(entry.time).getUTCHours() === 12)
+          .slice(0, 7); // Limit to 7 days
+        cache[cacheKey] = { data: dailyForecasts, timestamp: now };
+        return dailyForecasts;
       } catch (error) {
         console.error("შეცდომა ამინდის მონაცემების მიღებისას:", error);
         return [];
@@ -121,6 +122,11 @@
       if (!location) return;
 
       const forecast = await fetchWeatherData(location.lat, location.lon);
+      if (forecast.length === 0) {
+        container.innerHTML = `<p class="text-center text-red-500">მონაცემები მიუწვდომელია ${location.name}-სთვის</p>`;
+        return;
+      }
+
       let html = `<div class="tab-content active">
         <h2 class="text-2xl font-semibold text-gray-800 mb-4"><i class="fa-solid fa-map-marker-alt mr-2"></i>${location.name}</h2>
         <div class="space-y-4">
@@ -129,8 +135,8 @@
       forecast.forEach(day => {
         const date = new Date(day.time).toLocaleDateString("ka-GE", { weekday: "short", month: "short", day: "numeric" });
         const temp = day.data.instant.details.air_temperature;
-        const wind = day.data.instant.details.wind_speed;
-        const precip = day.data.instant.details.precipitation_amount;
+        const wind = day.data.instant.details.wind_speed * 3.6; // Convert m/s to km/h
+        const precip = day.data.next_1_hours ? day.data.next_1_hours.details.precipitation_amount : 0;
         const clouds = day.data.instant.details.cloud_area_fraction;
         const fishing = getFishingCondition(temp, wind, precip);
         const weatherIcon = getWeatherIcon(clouds, precip);
