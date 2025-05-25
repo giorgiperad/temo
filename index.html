@@ -1,74 +1,736 @@
 <!DOCTYPE html>
 <html lang="ka">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>თევზაობის ამინდის პროგნოზი</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css" />
-  <style>
-    /* Full original style from your version restored here */
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Helvetica Neue', sans-serif; }
-    body { background-color: #f0f5f9; color: #333; font-size: 14px; line-height: 1.5; }
-    .container { max-width: 100%; padding: 10px; margin: 0 auto; }
-    .header { text-align: center; margin-bottom: 15px; padding: 10px; background-color: #05668d; color: white; border-radius: 10px 10px 0 0; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
-    .location-select { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; background-color: #fff; font-size: 16px; }
-    .date-select { display: flex; overflow-x: auto; margin-bottom: 10px; padding-bottom: 5px; scrollbar-width: thin; }
-    .date-btn { min-width: 80px; padding: 8px; margin-right: 5px; border: none; background-color: #e0e0e0; border-radius: 5px; flex-shrink: 0; font-size: 12px; cursor: pointer; transition: all 0.2s; }
-    .date-btn.active { background-color: #05668d; color: white; }
-    .forecast-container { background-color: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 15px; overflow: hidden; }
-    .current-conditions { padding: 15px; text-align: center; background-color: #f8f9fa; border-bottom: 1px solid #eee; }
-    .current-temp { font-size: 32px; font-weight: bold; }
-    .current-details { display: flex; justify-content: space-around; margin-top: 10px; }
-    .detail-item { display: flex; flex-direction: column; align-items: center; }
-    .hourly-forecast { overflow-x: auto; white-space: nowrap; padding: 10px; scrollbar-width: thin; }
-    .hour-card { display: inline-block; padding: 10px; min-width: 100px; text-align: center; border-right: 1px solid #eee; }
-    .hour-card:last-child { border-right: none; }
-    .weather-icon img { width: 50px; height: 50px; }
-    .fishing-conditions { padding: 15px; background-color: #f8fcff; border-top: 1px solid #eee; }
-    .optimal-time { background-color: #e3f2fd; padding: 8px; border-radius: 5px; margin-top: 10px; border-left: 4px solid #2196f3; }
-    .optimal-time.major { background-color: #e8f5e9; border-left-color: #4caf50; }
-    .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-    .data-table th { background-color: #f5f5f5; padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; }
-    .data-table td { padding: 8px 4px; border-bottom: 1px solid #eee; }
-    .data-table tr:nth-child(even) { background-color: #fafafa; }
-    .info-section { padding: 15px; font-size: 13px; background-color: #fffde7; border-radius: 0 0 10px 10px; margin-bottom: 15px; }
-    .loading { text-align: center; padding: 20px; }
-    footer { text-align: center; padding: 10px; font-size: 12px; color: #666; }
-    .weather-icon { font-size: 24px; margin-bottom: 5px; }
-    .fishing-quality { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
-    .quality-poor { background-color: #ff5252; }
-    .quality-fair { background-color: #ffb74d; }
-    .quality-good { background-color: #81c784; }
-    .quality-excellent { background-color: #4caf50; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>თევზაობის ამინდის პროგნოზი</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f5f9;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 10px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #05668d;
+            color: white;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .location-select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            font-size: 16px;
+        }
+        
+        .date-select {
+            display: flex;
+            overflow-x: auto;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            scrollbar-width: thin;
+        }
+        
+        .date-btn {
+            min-width: 80px;
+            padding: 8px;
+            margin-right: 5px;
+            border: none;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            flex-shrink: 0;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .date-btn.active {
+            background-color: #05668d;
+            color: white;
+        }
+        
+        .forecast-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .current-conditions {
+            padding: 15px;
+            text-align: center;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .current-temp {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .current-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .detail-icon {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .hourly-forecast {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px;
+            scrollbar-width: thin;
+        }
+        
+        .hour-card {
+            display: inline-block;
+            padding: 10px;
+            min-width: 80px;
+            text-align: center;
+            border-right: 1px solid #eee;
+        }
+        
+        .hour-card:last-child {
+            border-right: none;
+        }
+        
+        .fishing-conditions {
+            padding: 15px;
+            background-color: #f8fcff;
+            border-top: 1px solid #eee;
+        }
+        
+        .optimal-time {
+            background-color: #e3f2fd;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .optimal-time.major {
+            background-color: #e8f5e9;
+            border-left-color: #4caf50;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .data-table th {
+            background-color: #f5f5f5;
+            padding: 8px 4px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .data-table td {
+            padding: 8px 4px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .info-section {
+            padding: 15px;
+            font-size: 13px;
+            background-color: #fffde7;
+            border-radius: 0 0 10px 10px;
+            margin-bottom: 15px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .wind-arrow {
+            display: inline-block;
+            transform-origin: center;
+        }
+        
+        .weather-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .fishing-quality {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .quality-poor {
+            background-color: #ff5252;
+        }
+        
+        .quality-fair {
+            background-color: #ffb74d;
+        }
+        
+        .quality-good {
+            background-color: #81c784;
+        }
+        
+        .quality-excellent {
+            background-color: #4caf50;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>თევზაობის ამინდის პროგნოზი</h1>
-      <p>თქვენი საუკეთესო თევზაობის დღეების დამგეგმავი</p>
+    <div class="container">
+        <div class="header">
+            <h1>თევზაობის ამინდის პროგნოზი</h1>
+            <p>თქვენი საუკეთესო თევზაობის დღეების დამგეგმავი</p>
+        </div>
+        
+        <select id="location-select" class="location-select">
+            <option value="tbilisi">თბილისი</option>
+            <option value="sioni">სიონი</option>
+            <option value="tsalka">წალკა</option>
+            <option value="bazaleti">ბაზალეთი</option>
+            <option value="nadarbazevi">ნადარბაზევი</option>
+        </select>
+        
+        <div id="date-select" class="date-select"></div>
+        
+        <div id="forecast-container" class="forecast-container">
+            <div class="loading">მონაცემების ჩატვირთვა...</div>
+        </div>
+        
+        <div class="info-section">
+            <h3>თევზაობის პირობების განმარტება</h3>
+            <p>თევზაობისთვის საუკეთესო პირობები მოიცავს: სტაბილურ წნევას (990-1020 hPa), ტემპერატურას 15-22°C, დაბალ ქარს (<15 კმ/სთ), და მცირე ან საშუალო ღრუბლიანობას. სოლუნარული თეორიის თანახმად, მთვარის ციკლი გავლენას ახდენს თევზების აქტიურობაზე. მთავარი და მეორეხარისხოვანი კვების პერიოდები წარმოადგენს დროის მონაკვეთებს, როდესაც თევზჭერის შანსი იზრდება.</p>
+        </div>
     </div>
-    <select id="location-select" class="location-select">
-      <option value="tbilisi">თბილისი</option>
-      <option value="sioni">სიონი</option>
-      <option value="tsalka">წალკა</option>
-      <option value="bazaleti">ბაზალეთი</option>
-      <option value="nadarbazevi">ნადარბაზევი</option>
-    </select>
-    <div id="date-select" class="date-select"></div>
-    <div id="forecast-container" class="forecast-container">
-      <div class="loading">მონაცემების ჩატვირთვა...</div>
-    </div>
-    <div class="info-section">
-      <h3>თევზაობის პირობების განმარტება</h3>
-      <p>თევზაობისთვის საუკეთესო პირობები მოიცავს: სტაბილურ წნევას (990-1020 hPa), ტემპერატურას 15-22°C, დაბალ ქარს (<15 კმ/სთ), და მცირე ან საშუალო ღრუბლიანობას. სოლუნარული თეორიის თანახმად, მთვარის ციკლი გავლენას ახდენს თევზების აქტიურობაზე. მთავარი და მეორეხარისხოვანი კვების პერიოდები წარმოადგენს დროის მონაკვეთებს, როდესაც თევზჭერის შანსი იზრდება.</p>
-    </div>
+    
     <footer>
-      <p>მონაცემები განახლებულია: <span id="update-time"></span></p>
+        <p>მონაცემები განახლებულია: <span id="update-time"></span></p>
     </footer>
-  </div>
-  <script>
-    // ➤ Full JavaScript with solunar + weather + fishing conditions is next (pending next step)
-  </script>
+
+    <script>
+        // Constants and configuration
+        const LOCATIONS = {
+            tbilisi: {
+                name: "თბილისი",
+                lat: 41.7151,
+                lon: 44.8271,
+                timeZone: 'Asia/Tbilisi'
+            },
+            sioni: {
+                name: "სიონი",
+                lat: 41.6206,
+                lon: 44.7944,
+                timeZone: 'Asia/Tbilisi'
+            },
+            tsalka: {
+                name: "წალკა",
+                lat: 41.5969,
+                lon: 44.0931,
+                timeZone: 'Asia/Tbilisi'
+            },
+            bazaleti: {
+                name: "ბაზალეთი",
+                lat: 41.9031,
+                lon: 44.6892,
+                timeZone: 'Asia/Tbilisi'
+            },
+            nadarbazevi: {
+                name: "ნადარბაზევი",
+                lat: 41.7756,
+                lon: 44.7823,
+                timeZone: 'Asia/Tbilisi'
+            }
+        };
+
+        // Replace with your OpenWeatherMap API key
+        const API_KEY = 'b5f3b44e0ff36c689aa09e1c5f227d6d'; // Get your API key from https://openweathermap.org/api
+
+        // Fetch weather data from OpenWeatherMap
+        async function fetchWeatherData(location, startDate) {
+            const lat = LOCATIONS[location].lat;
+            const lon = LOCATIONS[location].lon;
+            const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return parseWeatherData(data, startDate);
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                document.getElementById('forecast-container').innerHTML = '<div class="loading">მონაცემების ჩატვირთვა ვერ მოხერხდა</div>';
+                return [];
+            }
+        }
+
+        // Parse OpenWeatherMap data into the required format
+        function parseWeatherData(apiData, startDate) {
+            const data = [];
+            const forecastList = apiData.list;
+
+            // Process 5 days of data
+            for (let day = 0; day < 5; day++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + day);
+
+                // Filter forecast data for the current day
+                const dayData = forecastList.filter(item => {
+                    const itemDate = new Date(item.dt * 1000);
+                    return itemDate.getDate() === currentDate.getDate() &&
+                           itemDate.getMonth() === currentDate.getMonth() &&
+                           itemDate.getFullYear() === currentDate.getFullYear();
+                });
+
+                dayData.forEach(item => {
+                    const hourDate = new Date(item.dt * 1000);
+                    const hour = hourDate.getHours();
+
+                    // Extract weather parameters
+                    const temperature = parseFloat(item.main.temp.toFixed(1));
+                    const windSpeed = parseFloat(item.wind.speed.toFixed(1));
+                    const windDirection = Math.round(item.wind.deg);
+                    const precipProbability = item.pop ? Math.round(item.pop * 100) : 0;
+                    const precipAmount = item.rain ? item.rain['3h'] || 0 : 0;
+                    const humidity = Math.round(item.main.humidity);
+                    const cloudCover = item.clouds.all;
+                    const pressure = Math.round(item.main.pressure);
+                    const uvIndex = item.uvi || 0; // Note: UV index may require a separate API call
+
+                    // Solunar data (unchanged from original)
+                    const majorPeriodMorning = (day * 50 + 6) % 24;
+                    const majorPeriodEvening = (majorPeriodMorning + 12) % 24;
+                    const minorPeriodMorning = (majorPeriodMorning + 6) % 24;
+                    const minorPeriodEvening = (majorPeriodEvening + 6) % 24;
+
+                    const isMajorPeriod = 
+                        (hour >= majorPeriodMorning && hour < majorPeriodMorning + 2) || 
+                        (hour >= majorPeriodEvening && hour < majorPeriodEvening + 2);
+                    
+                    const isMinorPeriod = 
+                        (hour >= minorPeriodMorning && hour < minorPeriodMorning + 1) || 
+                        (hour >= minorPeriodEvening && hour < minorPeriodEvening + 1);
+
+                    // Calculate fishing quality
+                    let fishingQuality = 'poor';
+                    let qualityScore = 0;
+
+                    if (temperature >= 15 && temperature <= 22) {
+                        qualityScore += 2;
+                    } else if (temperature >= 10 && temperature <= 25) {
+                        qualityScore += 1;
+                    }
+
+                    if (windSpeed < 8) {
+                        qualityScore += 2;
+                    } else if (windSpeed < 15) {
+                        qualityScore += 1;
+                    }
+
+                    if (precipProbability < 10 || (precipProbability < 30 && precipAmount < 0.5)) {
+                        qualityScore += 1;
+                    }
+
+                    if (pressure >= 1010 && pressure <= 1020) {
+                        qualityScore += 1;
+                    }
+
+                    if (cloudCover >= 30 && cloudCover <= 70) {
+                        qualityScore += 1;
+                    }
+
+                    if (isMajorPeriod) {
+                        qualityScore += 3;
+                    } else if (isMinorPeriod) {
+                        qualityScore += 2;
+                    }
+
+                    if (qualityScore >= 8) {
+                        fishingQuality = 'excellent';
+                    } else if (qualityScore >= 6) {
+                        fishingQuality = 'good';
+                    } else if (qualityScore >= 4) {
+                        fishingQuality = 'fair';
+                    }
+
+                    data.push({
+                        date: hourDate,
+                        hour: hour,
+                        temperature: temperature,
+                        windSpeed: windSpeed,
+                        windDirection: windDirection,
+                        precipProbability: precipProbability,
+                        precipAmount: precipAmount,
+                        humidity: humidity,
+                        cloudCover: cloudCover,
+                        pressure: pressure,
+                        uvIndex: parseFloat(uvIndex.toFixed(1)),
+                        isMajorPeriod: isMajorPeriod,
+                        isMinorPeriod: isMinorPeriod,
+                        fishingQuality: fishingQuality
+                    });
+                });
+            }
+
+            return data;
+        }
+
+        // Format date in Georgian
+        function formatDate(date) {
+            const days = ['კვირა', 'ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი'];
+            const months = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
+            
+            return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+        }
+
+        // Format time in HH:MM format
+        function formatTime(date) {
+            return date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+
+        // Convert wind direction to arrow and text
+        function getWindDirection(degrees) {
+            const directions = ['ჩრდ', 'ჩრდ-აღმ', 'აღმ', 'სამხ-აღმ', 'სამხ', 'სამხ-დას', 'დას', 'ჩრდ-დას'];
+            const index = Math.round(((degrees %= 360) < 0 ? degrees + 360 : degrees) / 45) % 8;
+            
+            return {
+                text: directions[index],
+                arrowStyle: `transform: rotate(${degrees}deg)`
+            };
+        }
+
+        // Get weather icon based on cloud cover and precipitation
+        function getWeatherIcon(cloudCover, precipProb, precipAmount) {
+            if (precipProb > 30 && precipAmount > 0.5) {
+                return '🌧️';
+            } else if (precipProb > 20) {
+                return '🌦️';
+            } else if (cloudCover > 80) {
+                return '☁️';
+            } else if (cloudCover > 30) {
+                return '⛅';
+            } else {
+                return '☀️';
+            }
+        }
+
+        // Generate day buttons
+        function generateDayButtons(startDate) {
+            const container = document.getElementById('date-select');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const btn = document.createElement('button');
+                btn.className = 'date-btn' + (i === 0 ? ' active' : '');
+                btn.setAttribute('data-day', i);
+                
+                const dayName = date.toLocaleDateString('ka-GE', { weekday: 'short' });
+                const dayNum = date.getDate();
+                
+                btn.innerHTML = `${dayName}<br>${dayNum}`;
+                
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.date-btn').forEach(el => el.classList.remove('active'));
+                    this.classList.add('active');
+                    const selectedDay = parseInt(this.getAttribute('data-day'));
+                    renderDayForecast(selectedDay);
+                });
+                
+                container.appendChild(btn);
+            }
+        }
+
+        // Render weather forecast for selected day
+        function renderDayForecast(dayIndex) {
+            const container = document.getElementById('forecast-container');
+            const locationId = document.getElementById('location-select').value;
+            const dayData = weatherData.filter(item => {
+                const itemDate = new Date(item.date);
+                const targetDate = new Date(startDate);
+                targetDate.setDate(startDate.getDate() + dayIndex);
+                
+                return itemDate.getDate() === targetDate.getDate() && 
+                       itemDate.getMonth() === targetDate.getMonth() && 
+                       itemDate.getFullYear() === targetDate.getFullYear();
+            });
+            
+            if (dayData.length === 0) {
+                container.innerHTML = '<div class="loading">მონაცემები არ არის ხელმისაწვდომი</div>';
+                return;
+            }
+            
+            // Find current hour data or use first hour of the day
+            const now = new Date();
+            let currentHourData = dayData.find(item => {
+                const itemDate = new Date(item.date);
+                return itemDate.getHours() === now.getHours();
+            }) || dayData[0];
+            
+            // Generate current conditions section
+            let html = `
+                <div class="current-conditions">
+                    <h2>${LOCATIONS[locationId].name} - ${formatDate(new Date(currentHourData.date))}</h2>
+                    <div class="weather-icon">${getWeatherIcon(currentHourData.cloudCover, currentHourData.precipProbability, currentHourData.precipAmount)}</div>
+                    <div class="current-temp">${currentHourData.temperature}°C</div>
+                    <div class="current-details">
+                        <div class="detail-item">
+                            <div class="detail-icon">💨</div>
+                            <div>${currentHourData.windSpeed} კმ/სთ</div>
+                            <div>${getWindDirection(currentHourData.windDirection).text}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">💧</div>
+                            <div>${currentHourData.humidity}%</div>
+                            <div>ტენიანობა</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">🌡️</div>
+                            <div>${currentHourData.pressure} hPa</div>
+                            <div>წნევა</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Generate hourly forecast
+            html += '<div class="hourly-forecast">';
+            dayData.forEach(hourData => {
+                const hourDate = new Date(hourData.date);
+                const windDir = getWindDirection(hourData.windDirection);
+                
+                let qualityClass = 'quality-' + hourData.fishingQuality;
+                let qualityLabel = '';
+                switch(hourData.fishingQuality) {
+                    case 'excellent': qualityLabel = 'საუკეთესო'; break;
+                    case 'good': qualityLabel = 'კარგი'; break;
+                    case 'fair': qualityLabel = 'საშუალო'; break;
+                    case 'poor': qualityLabel = 'ცუდი'; break;
+                }
+                
+                let periodLabel = '';
+                if (hourData.isMajorPeriod) {
+                    periodLabel = '<div style="color:#4caf50;font-weight:bold;">მთავარი</div>';
+                } else if (hourData.isMinorPeriod) {
+                    periodLabel = '<div style="color:#2196f3;">მეორეხარისხოვანი</div>';
+                }
+                
+                html += `
+                    <div class="hour-card">
+                        <div>${formatTime(hourDate)}</div>
+                        <div class="weather-icon">${getWeatherIcon(hourData.cloudCover, hourData.precipProbability, hourData.precipAmount)}</div>
+                        <div style="font-size:16px;font-weight:bold;">${hourData.temperature}°C</div>
+                        <div>${hourData.windSpeed} კმ/სთ ${windDir.text}</div>
+                        <div>${hourData.precipProbability}% ნალექი</div>
+                        <div style="margin-top:5px;">
+                            <span class="fishing-quality ${qualityClass}"></span>
+                            ${qualityLabel}
+                        </div>
+                        ${periodLabel}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            // Find solunar periods for this day
+            const majorPeriods = dayData.filter(item => item.isMajorPeriod);
+            const minorPeriods = dayData.filter(item => item.isMinorPeriod);
+            
+            // Generate fishing conditions section
+            html += '<div class="fishing-conditions">';
+            html += '<h3>თევზაობის პირობები</h3>';
+            
+            if (majorPeriods.length > 0) {
+                html += '<div class="optimal-time major">';
+                html += '<strong>მთავარი კვების პერიოდები:</strong><br>';
+                majorPeriods.forEach((period, index) => {
+                    const periodStart = new Date(period.date);
+                    const periodEnd = new Date(periodStart);
+                    periodEnd.setHours(periodStart.getHours() + 2);
+                    
+                    html += `${formatTime(periodStart)} - ${formatTime(periodEnd)}`;
+                    if (index < majorPeriods.length - 1) html += ', ';
+                });
+                html += '</div>';
+            }
+            
+            if (minorPeriods.length > 0) {
+                html += '<div class="optimal-time">';
+                html += '<strong>მეორეხარისხოვანი კვების პერიოდები:</strong><br>';
+                minorPeriods.forEach((period, index) => {
+                    const periodStart = new Date(period.date);
+                    const periodEnd = new Date(periodStart);
+                    periodEnd.setHours(periodStart.getHours() + 1);
+                    
+                    html += `${formatTime(periodStart)} - ${formatTime(periodEnd)}`;
+                    if (index < minorPeriods.length - 1) html += ', ';
+                });
+                html += '</div>';
+            }
+            
+            // Generate detailed data table
+            html += `
+                <h3 style="margin-top:15px;">დეტალური მონაცემები</h3>
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>დრო</th>
+                                <th>ტემპ.</th>
+                                <th>ქარი</th>
+                                <th>ნალექი</th>
+                                <th>ტენიან.</th>
+                                <th>ღრუბ.</th>
+                                <th>წნევა</th>
+                                <th>UV</th>
+                                <th>ხარისხი</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            for (let i = 0; i < dayData.length; i += 3) {
+                const hourData = dayData[i];
+                const hourDate = new Date(hourData.date);
+                const windDir = getWindDirection(hourData.windDirection);
+                
+                let qualityLabel = '';
+                switch(hourData.fishingQuality) {
+                    case 'excellent': qualityLabel = 'საუკეთესო'; break;
+                    case 'good': qualityLabel = 'კარგი'; break;
+                    case 'fair': qualityLabel = 'საშუალო'; break;
+                    case 'poor': qualityLabel = 'ცუდი'; break;
+                }
+                
+                let solunarIndicator = '';
+                if (hourData.isMajorPeriod) {
+                    solunarIndicator = '🟢';
+                } else if (hourData.isMinorPeriod) {
+                    solunarIndicator = '🔵';
+                }
+                
+                html += `
+                    <tr>
+                        <td>${formatTime(hourDate)}</td>
+                        <td>${hourData.temperature}°C</td>
+                        <td>${hourData.windSpeed} ${windDir.text}</td>
+                        <td>${hourData.precipProbability}%</td>
+                        <td>${hourData.humidity}%</td>
+                        <td>${hourData.cloudCover}%</td>
+                        <td>${hourData.pressure}</td>
+                        <td>${hourData.uvIndex}</td>
+                        <td>${solunarIndicator} ${qualityLabel}</td>
+                    </tr>
+                `;
+            }
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            html += '</div>';
+            
+            container.innerHTML = html;
+        }
+
+        // Global variables
+        let weatherData = [];
+        const startDate = new Date(); // Use current date
+
+        // Load weather data for the selected location
+        async function loadLocationData() {
+            const locationId = document.getElementById('location-select').value;
+            
+            // Show loading indicator
+            document.getElementById('forecast-container').innerHTML = '<div class="loading">მონაცემების ჩატვირთვა...</div>';
+            
+            // Fetch weather data
+            weatherData = await fetchWeatherData(locationId, startDate);
+            
+            // Generate day buttons
+            generateDayButtons(startDate);
+            
+            // Render first day forecast
+            renderDayForecast(0);
+            
+            // Update time
+            const now = new Date();
+            document.getElementById('update-time').textContent = now.toLocaleString('ka-GE', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('location-select').addEventListener('change', loadLocationData);
+            
+            // Load initial data
+            loadLocationData();
+            
+            // Set up timer to refresh data every 30 minutes
+            setInterval(async () => {
+                const currentDay = parseInt(document.querySelector('.date-btn.active').getAttribute('data-day'));
+                await loadLocationData();
+                renderDayForecast(currentDay);
+            }, 1800000); // 30 minutes
+        });
+    </script>
 </body>
 </html>
