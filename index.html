@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2f3d3a 0%, #3e4f4a 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -25,74 +25,70 @@
 
         .header {
             text-align: center;
-            color: white;
-            margin-bottom: 0; /* Changed to 0 as requested */
+            color: #d0e0d8;
+            margin-bottom: 0;
+            padding: 0px 0;
+            background: linear-gradient(135deg, #355a50, #406f65);
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
         }
 
         .header h1 {
             font-size: clamp(1.5rem, 4vw, 2.5rem);
             margin-bottom: 0px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
         }
 
         .header .custom-icon {
             vertical-align: middle;
-            width: clamp(30px, 5vw, 40px);
+            width: clamp(70px, 5vw, 70px);
             height: auto;
             margin-right: 10px;
+            filter: brightness(1.1);
         }
 
         .widget-container {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.7);
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
+            margin-top: 20px;
+            border: 1px solid rgba(53, 90, 80, 0.3);
         }
 
         .city-tabs {
             display: flex;
-            background: rgba(102, 126, 234, 0.1);
-            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            background: linear-gradient(90deg, #355a50, #406f65);
             overflow-x: auto;
+            padding: 5px;
         }
 
         .city-tab {
-            padding: 15px 25px;
+            padding: 12px 20px;
             cursor: pointer;
-            background: transparent;
-            border: none;
-            color: #667eea;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(208, 224, 216, 0.3);
+            color: #d0e0d8;
             font-size: 1rem;
             font-weight: 500;
             white-space: nowrap;
             transition: all 0.3s ease;
-            position: relative;
+            border-radius: 10px;
+            margin-right: 5px;
         }
 
         .city-tab:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #5a67d8;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
         }
 
         .city-tab.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .city-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: white;
+            background: #406f65;
+            color: #fff;
+            border-color: #d0e0d8;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .city-content {
@@ -109,9 +105,10 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 30px;
-            padding: 25px;
-            background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+            padding: 20px;
+            background: linear-gradient(135deg, #406f65, #4a7f76);
             border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
         }
 
         .current-info {
@@ -125,20 +122,21 @@
         }
 
         .weather-details h2 {
-            color: #333;
+            color: #fff;
             font-size: 1.5rem;
             margin-bottom: 5px;
         }
 
         .weather-details p {
-            color: #666;
+            color: #c0d0c8;
             margin-bottom: 5px;
         }
 
         .current-temp {
             font-size: 3rem;
-            color: #667eea;
+            color: #fff;
             font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
 
         .fishing-score {
@@ -150,6 +148,7 @@
             display: inline-block;
             margin-top: 15px;
             font-size: 1.1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .fishing-score.poor {
@@ -165,19 +164,23 @@
             gap: 10px;
             margin-bottom: 20px;
             overflow-x: auto;
-            padding-bottom: 10px;
+            padding: 10px 0;
+            background: rgba(64, 111, 101, 0.15);
+            border-radius: 10px;
         }
 
         .day-tab {
             padding: 12px 20px;
-            background: #f8f9ff;
-            border: 2px solid transparent;
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(208, 224, 216, 0.3);
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
             white-space: nowrap;
             min-width: 120px;
             text-align: center;
+            color: #d0e0d8;
+            font-weight: 500;
             position: relative;
         }
 
@@ -200,21 +203,24 @@
         }
 
         .day-tab:hover {
-            background: #e8f0ff;
-            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
         }
 
         .day-tab.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+            background: #406f65;
+            color: #fff;
+            border-color: #d0e0d8;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .day-content {
             display: none;
-            background: #f8f9ff;
+            background: linear-gradient(135deg, #406f65, #4a7f76);
             padding: 25px;
             border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
         }
 
         .day-content.active {
@@ -228,12 +234,13 @@
         }
 
         .hour-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.6);
             padding: 15px;
             border-radius: 12px;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             transition: transform 0.3s ease;
+            border: 1px solid rgba(64, 111, 101, 0.3);
         }
 
         .hour-card:hover {
@@ -242,7 +249,7 @@
 
         .hour-time {
             font-weight: bold;
-            color: #667eea;
+            color: #406f65;
             margin-bottom: 8px;
         }
 
@@ -268,14 +275,14 @@
             justify-content: center;
             align-items: center;
             padding: 50px;
-            color: #667eea;
+            color: #406f65;
         }
 
         .spinner {
             width: 40px;
             height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border: 4px solid rgba(64, 111, 101, 0.3);
+            border-top: 4px solid #406f65;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-right: 15px;
@@ -288,18 +295,22 @@
 
         .error {
             color: #f44336;
-            background: rgba(255, 235, 238, 0.9);
+            background: rgba(255, 235, 238, 0.8);
             padding: 20px;
             border-radius: 10px;
             margin: 20px;
             text-align: center;
+            border: 1px solid rgba(244, 67, 54, 0.3);
         }
 
         .update-info {
             text-align: center;
-            color: white;
+            color: #d0e0d8;
             margin-top: 20px;
-            opacity: 0.8;
+            opacity: 0.9;
+            background: rgba(47, 61, 58, 0.2);
+            padding: 10px;
+            border-radius: 10px;
         }
 
         .feels-like {
@@ -309,18 +320,19 @@
         }
 
         .fishing-guide {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.7);
             border-radius: 20px;
             padding: 30px;
             margin-top: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
             color: #333;
+            border: 1px solid rgba(64, 111, 101, 0.3);
         }
 
         .fishing-guide h2 {
             font-size: 1.8rem;
-            color: #667eea;
+            color: #406f65;
             margin-bottom: 15px;
             text-align: center;
         }
@@ -344,7 +356,7 @@
         }
 
         .fishing-guide strong {
-            color: #5a67d8;
+            color: #406f65;
         }
 
         @media (max-width: 768px) {
@@ -353,7 +365,7 @@
             }
 
             .header .custom-icon {
-                width: clamp(70px, 6vw, 80px); /* Increased size for mobile */
+                width: clamp(70px, 6vw, 70px);
             }
 
             .current-weather {
@@ -404,11 +416,11 @@
                 <li><strong>ტემპერატურა:</strong> ჰაერის სითბოს ხარისხი (°C). თევზი აქტიურია 15–25°C-ზე, რადგან ეს ზრდის მათ მეტაბოლიზმს. ძალიან ცხელი (>35°C) ან ცივი (<5°C) ამცირებს აქტივობას。</li>
                 <li><strong>ქარის სიჩქარე:</strong> ჰაერის მოძრაობა (კმ/სთ). ზომიერი ქარი (2–10 კმ/სთ) ხელსაყრელია, რადგან ზრდის ჟანგბადს წყალში. ძლიერი ქარი (>20 კმ/სთ) ართულებს თევზაობას。</li>
                 <li><strong>ტენიანობა:</strong> ჰაერში წყლის ორთქლის რაოდენობა (%). 60–80% იდეალურია, რადგან მიუთითებს სტაბილურ ამინდზე。</li>
-                <li><strong>წნევა:</strong> ატმოსფერული წნევა (hPa). სტაბილური წნევა (1010–1025 hPa) ხელსაყრელია, ხოლო ცვლილებები თევზის ქცევას ცვლის。</li>
+                <li><strong>წnევა:</strong> ატმოსფერული წnევა (hPa). სტაბილური წnევა (1010–1025 hPa) ხელსაყრელია, ხოლო ცვლილებები თევზის ქცევას ცვლის。</li>
                 <li><strong>ღრუბლიანობა:</strong> ცის დაფარვა ღრუბლებით (%). 20–60% ხელსაყრელია, რადგან ნაწილობრივი ჩრდილი თევზს ზედაპირთან აახლოვებს。</li>
                 <li><strong>წვიმა:</strong> ნალექის რაოდენობა (მმ/სთ). მსუბუქი წვიმა (≤2 მმ/სთ) კარგია, ხოლო ძლიერი წვიმა (>10 მმ/სთ) ართულებს თევზაობას。</li>
             </ul>
-            <p><strong>საუკეთესო პირობები:</strong> ტემპერატურა 15–25°C, ქარი 2–10 კმ/სთ, ტენიანობა 60–80%, წნევა 1010–1025 hPa, ღრუბლიანობა 20–60%, წვიმა 0–2 მმ/სთ. ეს პირობები თევზს აქტიურს ხდის და აადვილებს თევზაობას。</p>
+            <p><strong>საუკეთესო პირობები:</strong> ტემპერატურა 15–25°C, ქარი 2–10 კმ/სთ, ტენიანობა 60–80%, წnევა 1010–1025 hPa, ღრუბლიანობა 20–60%, წვიმა 0–2 მმ/სთ. ეს პირობები თევზს აქტიურს ხდის და აადვილებს თევზაობას。</p>
         </div>
     </div>
 
@@ -562,7 +574,7 @@
                                 <p class="feels-like">ტემპერატურა: ${feelsLike}°C</p>
                                 <p>ქარი: ${Math.round(windSpeed * 3.6)} კმ/სთ</p>
                                 <p>ტენიანობა: ${humidity}%</p>
-                                <p>წნევა: ${pressure} hPa</p>
+                                <p>წnევა: ${pressure} hPa</p>
                                 <p>ღრუბლიანობა: ${clouds}%</p>
                                 ${rain > 0 ? `<p>წვიმა: ${rain} მმ/სთ</p>` : ''}
                                 <div class="fishing-score ${fishingScore.class}">
@@ -660,7 +672,7 @@
                                                 <div class="hour-details">
                                                     ქარი: ${itemWind} კმ/სთ<br>
                                                     ტენიანობა: ${itemHumidity}%<br>
-                                                    წნევა: ${itemPressure} hPa<br>
+                                                    წnევა: ${itemPressure} hPa<br>
                                                     ${itemRain > 0 ? `წვიმა: ${itemRain.toFixed(1)} მმ<br>` : ''}
                                                     <span style="color: ${itemFishingScore.class === '' ? '#4CAF50' : itemFishingScore.class === 'fair' ? '#ff9800' : '#f44336'}; font-weight: bold;">
                                                         🎣 ${itemFishingScore.text}
