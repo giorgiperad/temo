@@ -428,6 +428,9 @@
     </div>
 
     <script>
+
+
+        
         const API_KEY = 'b5f3b44e0ff36c689aa09e1c5f227d6d';
         
         const locations = [
@@ -762,7 +765,13 @@
                 `;
             }
         }
-
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker registered'))
+      .catch(err => console.error('Service Worker registration failed:', err));
+  });
+}
         // Initial load
         loadAllWeatherData();
 
