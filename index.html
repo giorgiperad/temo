@@ -436,6 +436,47 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('Service Worker registration failed:', err));
   });
 }
+        let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent Chrome from automatically showing the prompt
+  e.preventDefault();
+  // Stash the event so it can be triggered later
+  deferredPrompt = e;
+  // Show a custom install button or notification
+  showInstallPrompt();
+});
+
+function showInstallPrompt() {
+  // You can add a button in your HTML to trigger this
+  const installButton = document.createElement('button');
+  installButton.textContent = 'დააინსტალირე აპლიკაცია';
+  installButton.style.position = 'fixed';
+  installButton.style.bottom = '20px';
+  installButton.style.right = '20px';
+  installButton.style.padding = '10px 20px';
+  installButton.style.background = '#406f65';
+  installButton.style.color = '#fff';
+  installButton.style.border = 'none';
+  installButton.style.borderRadius = '5px';
+  installButton.style.cursor = 'pointer';
+  document.body.appendChild(installButton);
+
+  installButton.addEventListener('click', () => {
+    // Show the install prompt
+    deferredPrompt.prompt();
+    // Wait for the user to respond to the prompt
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+      deferredPrompt = null;
+      installButton.remove();
+    });
+  });
+}
         
         const API_KEY = 'b5f3b44e0ff36c689aa09e1c5f227d6d';
         
