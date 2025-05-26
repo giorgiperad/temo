@@ -2,7 +2,7 @@ const CACHE_NAME = 'weather-app-cache-v1';
 const urlsToCache = [
     '/',
     '/index.html',
-    'https://ta3bviqjtxy1kv7x.public.blob.vercel-storage.com/bb1-gMiAHJ5ILdALhLF9EKnw9QCMXwooYf.png'
+    'https://ta3bviqjtxy1kv7x.public.blob.vercel-storage.com/bb-CZSrKO0GN7VGFnjZTR88zyTqV5pNs7.png'
 ];
 
 // Install event: Cache essential files
