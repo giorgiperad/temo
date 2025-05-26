@@ -1,7 +1,7 @@
 {
   "name": "თემოს ამინდის პროგნოზი",
   "short_name": "ამინდი",
-  "start_url": "/",
+  "start_url": "https://temo-fawn.vercel.app/",
   "display": "standalone",
   "background_color": "#2f3d3a",
   "theme_color": "#406f65",
