@@ -7,7 +7,7 @@
   "theme_color": "#406f65",
   "icons": [
     {
-      "src": "https://ta3bviqjtxy1kv7x.public.blob.vercel-storage.com/bb-CZSrKO0GN7VGFnjZTR88zyTqV5pNs7.png",
+      "src": "https://ta3bviqjtxy1kv7x.public.blob.vercel-storage.com/bb2-SDSuOBjphOZ30Ke1P4TGrGoK1cowv0.png",
       "sizes": "192x192",
       "type": "image/png"
     },
@@ -16,5 +16,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "scope": "/"
 }
